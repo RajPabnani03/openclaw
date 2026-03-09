@@ -23,7 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ScreenShare
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.SmartToy
+import ai.openclaw.android.clawbot.ClawBotRepository
+import ai.openclaw.android.clawbot.ClawBotViewModel
+import ai.openclaw.android.ui.clawbot.ClawBotScreen
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -51,7 +54,7 @@ private enum class HomeTab(
 ) {
   Connect(label = "Connect", icon = Icons.Default.CheckCircle),
   Chat(label = "Chat", icon = Icons.Default.ChatBubble),
-  Voice(label = "Voice", icon = Icons.Default.RecordVoiceOver),
+  ClawBot(label = "ClawBot", icon = Icons.Default.SmartToy),
   Screen(label = "Screen", icon = Icons.AutoMirrored.Filled.ScreenShare),
   Settings(label = "Settings", icon = Icons.Default.Settings),
 }
@@ -83,9 +86,16 @@ fun PostOnboardingTabs(viewModel: MainViewModel, modifier: Modifier = Modifier) 
       }
     }
 
+  // Build ClawBotViewModel once and remember it for the lifetime of this composition.
+  val clawBotViewModel =
+    remember(viewModel) {
+      val repo = ClawBotRepository(viewModel.clawBotChatController)
+      ClawBotViewModel(repository = repo, chatController = viewModel.clawBotChatController)
+    }
+
   val density = LocalDensity.current
   val imeVisible = WindowInsets.ime.getBottom(density) > 0
-  val hideBottomTabBar = activeTab == HomeTab.Chat && imeVisible
+  val hideBottomTabBar = (activeTab == HomeTab.Chat || activeTab == HomeTab.ClawBot) && imeVisible
 
   Scaffold(
     modifier = modifier,
@@ -117,7 +127,7 @@ fun PostOnboardingTabs(viewModel: MainViewModel, modifier: Modifier = Modifier) 
       when (activeTab) {
         HomeTab.Connect -> ConnectTabScreen(viewModel = viewModel)
         HomeTab.Chat -> ChatSheet(viewModel = viewModel)
-        HomeTab.Voice -> ComingSoonTabScreen(label = "VOICE", title = "Coming soon", description = "Voice mode is coming soon.")
+        HomeTab.ClawBot -> ClawBotScreen(viewModel = clawBotViewModel)
         HomeTab.Screen -> ScreenTabScreen(viewModel = viewModel)
         HomeTab.Settings -> SettingsSheet(viewModel = viewModel)
       }

@@ -258,6 +258,7 @@ class NodeRuntime(context: Context) {
         talkMode.setMainSessionKey(mainKey)
         chat.applyMainSessionKey(mainKey)
         chat.onDisconnected(message)
+        clawBotChat.onDisconnected(message)
         updateStatus()
       },
       onEvent = { event, payloadJson ->
@@ -307,6 +308,16 @@ class NodeRuntime(context: Context) {
       json = json,
       supportsChatSubscribe = false,
     )
+
+  /** Dedicated controller for the ClawBot tab — isolated from the main chat tab. */
+  val clawBotChat: ChatController =
+    ChatController(
+      scope = scope,
+      session = operatorSession,
+      json = json,
+      supportsChatSubscribe = false,
+    )
+
   private val talkMode: TalkModeManager by lazy {
     TalkModeManager(
       context = appContext,
@@ -804,6 +815,7 @@ class NodeRuntime(context: Context) {
 
     talkMode.handleGatewayEvent(event, payloadJson)
     chat.handleGatewayEvent(event, payloadJson)
+    clawBotChat.handleGatewayEvent(event, payloadJson)
   }
 
   private suspend fun refreshBrandingFromGateway() {

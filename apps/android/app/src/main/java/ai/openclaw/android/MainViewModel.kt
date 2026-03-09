@@ -2,6 +2,7 @@ package ai.openclaw.android
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import ai.openclaw.android.chat.ChatController
 import ai.openclaw.android.gateway.GatewayEndpoint
 import ai.openclaw.android.chat.OutgoingAttachment
 import ai.openclaw.android.node.CameraCaptureManager
@@ -71,6 +72,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
   val chatPendingToolCalls = runtime.chatPendingToolCalls
   val chatSessions = runtime.chatSessions
   val pendingRunCount: StateFlow<Int> = runtime.pendingRunCount
+
+  /** Exposed for use by [ClawBotViewModel] factory. */
+  val clawBotChatController: ChatController = runtime.clawBotChat
 
   fun setForeground(value: Boolean) {
     runtime.setForeground(value)
