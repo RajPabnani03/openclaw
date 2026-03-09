@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const CORE_PACKAGE_NAMES = new Set(["openclaw"]);
+const WINDOWS_BIN_LAUNCHER_EXTENSIONS = new Set([".cmd", ".bat", ".exe", ".ps1"]);
 
 async function readPackageName(dir: string): Promise<string | null> {
   try {
@@ -57,6 +58,14 @@ function* iterAncestorDirs(startDir: string, maxDepth: number): Generator<string
   }
 }
 
+function stripWindowsLauncherExtension(binName: string): string {
+  const ext = path.extname(binName).toLowerCase();
+  if (!WINDOWS_BIN_LAUNCHER_EXTENSIONS.has(ext)) {
+    return binName;
+  }
+  return binName.slice(0, -ext.length);
+}
+
 function candidateDirsFromArgv1(argv1: string): string[] {
   const normalized = path.resolve(argv1);
   const candidates = [path.dirname(normalized)];
@@ -75,9 +84,11 @@ function candidateDirsFromArgv1(argv1: string): string[] {
   const parts = normalized.split(path.sep);
   const binIndex = parts.lastIndexOf(".bin");
   if (binIndex > 0 && parts[binIndex - 1] === "node_modules") {
-    const binName = path.basename(normalized);
+    const binName = stripWindowsLauncherExtension(path.basename(normalized));
     const nodeModulesDir = parts.slice(0, binIndex).join(path.sep);
-    candidates.push(path.join(nodeModulesDir, binName));
+    if (binName) {
+      candidates.push(path.join(nodeModulesDir, binName));
+    }
   }
   return candidates;
 }
