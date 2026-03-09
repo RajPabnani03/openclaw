@@ -113,6 +113,16 @@ describe("resolveOpenClawPackageRoot", () => {
     expect(resolveOpenClawPackageRootSync({ argv1 })).toBe(pkgRoot);
   });
 
+  it("resolves package root from Windows .CMD launchers in .bin", async () => {
+    const project = fx("windows-cmd-bin-scenario");
+    const argv1 = path.join(project, "node_modules", ".bin", "openclaw.CMD");
+    const pkgRoot = path.join(project, "node_modules", "openclaw");
+    setFile(path.join(pkgRoot, "package.json"), JSON.stringify({ name: "openclaw" }));
+
+    expect(resolveOpenClawPackageRootSync({ argv1 })).toBe(pkgRoot);
+    await expect(resolveOpenClawPackageRoot({ argv1 })).resolves.toBe(pkgRoot);
+  });
+
   it("resolves package root via symlinked argv1", async () => {
     const project = fx("symlink-scenario");
     const bin = path.join(project, "bin", "openclaw");
