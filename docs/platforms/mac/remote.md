@@ -53,6 +53,44 @@ Remote mode supports two transports:
 - The remote host needs the same TCC approvals as local (Automation, Accessibility, Screen Recording, Microphone, Speech Recognition, Notifications). Run onboarding on that machine to grant them once.
 - Nodes advertise their permission state via `node.list` / `node.describe` so agents know what’s available.
 
+## Sub-agent spawn options (server mode)
+
+When the macOS app remotely controls a gateway, the gateway on the server host handles all agent and sub-agent work locally. Configure sub-agent spawn behavior in the server's `~/.openclaw/openclaw.json`:
+
+```json5
+{
+  agents: {
+    defaults: {
+      subagents: {
+        maxConcurrent: 8,          // concurrent sub-agent lane cap (default: 8)
+        maxSpawnDepth: 1,          // nesting depth: 1 = leaf-only (default), 2 = orchestrator pattern
+        maxChildrenPerAgent: 5,    // active children per session (default: 5)
+        runTimeoutSeconds: 0,      // per-run timeout in seconds; 0 = no timeout (default)
+        archiveAfterMinutes: 60,   // auto-archive finished sessions (default: 60)
+        announceTimeoutMs: 60000,  // announce delivery timeout in ms (default: 60000)
+        // Optional overrides for sub-agent model and thinking level:
+        // model: "some-provider/cheaper-model",
+        // thinking: "off",
+      },
+    },
+  },
+}
+```
+
+These settings only apply to the gateway server process (the remote host). They do not affect the macOS app itself.
+
+- `maxConcurrent`: global cap on concurrent sub-agent runs across all sessions.
+- `maxSpawnDepth`: `1` = sub-agents cannot spawn children (default); `2` = orchestrator pattern (sub-agent may spawn leaf workers).
+- `maxChildrenPerAgent`: maximum active sub-agent children per parent session.
+- `runTimeoutSeconds`: default run timeout applied when `sessions_spawn` omits `runTimeoutSeconds`. `0` means no timeout.
+- `archiveAfterMinutes`: how long to keep finished sub-agent sessions before auto-archiving.
+- `announceTimeoutMs`: timeout for the announce delivery call after a sub-agent completes.
+- `model` / `thinking`: set a default model or thinking level for all spawned sub-agents; explicit `sessions_spawn` values still override these.
+
+See [Sub-agents](/tools/subagents) for the full spawn behavior reference including nested depth, tool policy, and the announce chain.
+
+**Security:** `sessions_spawn` is blocked over the gateway HTTP `/tools/invoke` endpoint by default — it is a control-plane action. It is only accessible via authenticated WebSocket RPC. Keep the gateway token secure and use loopback binding on the server.
+
 ## Security notes
 
 - Prefer loopback binds on the remote host and connect via SSH or Tailscale.

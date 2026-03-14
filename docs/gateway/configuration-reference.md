@@ -1688,18 +1688,28 @@ Notes:
   agents: {
     defaults: {
       subagents: {
-        model: "minimax/MiniMax-M2.1",
-        maxConcurrent: 1,
-        runTimeoutSeconds: 900,
-        archiveAfterMinutes: 60,
+        maxConcurrent: 8,          // concurrent sub-agent lane cap (default: 8)
+        maxSpawnDepth: 1,          // nesting depth: 1 = leaf-only (default), 2 = orchestrator pattern
+        maxChildrenPerAgent: 5,    // active children per session (default: 5)
+        runTimeoutSeconds: 0,      // per-run timeout in seconds; 0 = no timeout (default)
+        archiveAfterMinutes: 60,   // auto-archive finished sessions (default: 60)
+        announceTimeoutMs: 60000,  // announce delivery timeout in ms (default: 60000)
+        model: "minimax/MiniMax-M2.1", // optional: default model for sub-agents
+        thinking: "off",           // optional: default thinking level for sub-agents
       },
     },
   },
 }
 ```
 
+- `maxConcurrent`: global cap on concurrent sub-agent runs (lane `subagent`). Default: `8`.
+- `maxSpawnDepth`: maximum `sessions_spawn` nesting depth (`1`–`5`). Default: `1` (sub-agents cannot spawn children). Set to `2` to enable the orchestrator pattern. See [Sub-agents](/tools/subagents).
+- `maxChildrenPerAgent`: maximum active sub-agent children allowed per parent session. Default: `5`.
 - `model`: default model for spawned sub-agents. If omitted, sub-agents inherit the caller's model.
+- `thinking`: default thinking level for spawned sub-agents (e.g. `"off"`, `"low"`, `"medium"`, `"high"`). Explicit `sessions_spawn.thinking` values override this.
 - `runTimeoutSeconds`: default timeout (seconds) for `sessions_spawn` when the tool call omits `runTimeoutSeconds`. `0` means no timeout.
+- `archiveAfterMinutes`: how long to keep finished sub-agent sessions before auto-archiving. Default: `60`.
+- `announceTimeoutMs`: timeout in milliseconds for the announce delivery call after a sub-agent completes. Default: `60000`.
 - Per-subagent tool policy: `tools.subagents.tools.allow` / `tools.subagents.tools.deny`.
 
 ---
