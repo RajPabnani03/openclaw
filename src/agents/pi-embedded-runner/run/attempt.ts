@@ -365,7 +365,9 @@ export async function runEmbeddedAttempt(
     const workspaceNotes = hookAdjustedBootstrapFiles.some(
       (file) => file.name === DEFAULT_BOOTSTRAP_FILENAME && !file.missing,
     )
-      ? ["Reminder: commit your changes in this workspace after edits."]
+      ? [
+          "Reminder: commit your changes in this workspace only after the overall task is complete. Do not commit prematurely before the task is finished.",
+        ]
       : undefined;
 
     const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
